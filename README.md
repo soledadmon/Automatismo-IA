@@ -30,15 +30,11 @@ El sistema busca:
 - Gestionar una base de conocimiento validada mediante Human-in-the-Loop.
 - Generar indicadores para la toma de decisiones.
 
-## Flujo general (alto nivel)
-1. El usuario ingresa el reclamo, que se guarda en la base de reclamos.
-2. Un trigger procesa reclamos pendientes (puede correr cada cierto intervalo) para contemplar inserciones concurrentes.
-3. Al finalizar el flujo, se consolidan los indicadores en la tabla `Dashboard_IA`.
+## Observaciones:
 
-### Tabla `Dashboard_IA`
-- Almacena información para construir dashboards posteriores.
-- **No participa en la operación diaria** del sistema.
-- Su finalidad es consolidar indicadores generados por los workflows para análisis y toma de decisiones.
+El sistema parte de la idea de que el usuario ingresa el reclamo que se va a grabar en la base de reclamos. Una vez que el reclamo está en la base comenzará el flujo automatizado. Como varios reclamos se pueden insertar incluso a la vez se implementa un trigger que corra cada cierta cantidad de tiempo para procesar los reclamos que no han sido procesados aún.
+Para finalizar el flujo se crea una tabla Dashboard_IA donde se almacena la información para luego realizar los dashboards que se consideren necesarios con la información obtenida. La tabla Dashboard_IA no participa en la operación diaria del sistema. Su finalidad es consolidar indicadores generados por los workflows para facilitar el análisis del desempeño del ecosistema y apoyar la toma de decisiones. 
+
 
 ## Gestión del Conocimiento (Human-in-the-Loop)
 Cuando un ticket se cierra:
@@ -53,9 +49,14 @@ Se requiere validación de un responsable (Human-in-the-Loop) para asegurar:
 - Se muestra al responsable el conjunto de soluciones propuestas por la IA.
 - El responsable puede: aprobar, rechazar o solicitar modificaciones.
 - Incluye una acción para actualizar la tabla `Conocimiento`.
+`Conocimiento` quedan planteados como una **mejora futura** del ecosistema.
 
-> Estado de implementación: el panel de revisión y la acción de incorporación a la tabla `Conocimiento` quedan planteados como una **mejora futura** del ecosistema.
-> 
+La metodología Human-in-the-Loop también será aplicada en otros escenarios donde la intervención humana aporte valor, como la revisión de reclamos que no puedan ser resueltos automáticamente y la validación de casos críticos. Estos mecanismos forman parte del diseño del sistema y permiten mantener supervisión humana en decisiones donde la IA requiere apoyo o confirmación.
+Ejemplo de aplicación de HITL:
+![HITL](img_HITL)
+
+## Diagrama general
+![ArcitecturaGeneral](img_Arq_gen.drawio)
 ## Arquitectura (Workflows coordinados + Airtable)
 El ecosistema fue dividido en **cinco workflows independientes** que trabajan de forma coordinada sobre una misma base de datos en **Airtable**.  
 Cada workflow tiene una responsabilidad específica dentro del proceso de gestión de reclamos, manteniendo una arquitectura modular, escalable y fácil de mantener.
@@ -169,8 +170,8 @@ Tabla creada para consolidación y análisis de datos para dashboards e indicado
 - Recomendaciones_IA
 
 ## Arquitectura del flujo
-(Referenciar aquí el diagrama PDF de arquitectura)***********************************************************************************
 
+![Arq_flujo](Arq_flujo.png)
 ## Descripción de los Workflows (alto nivel)
 
 ### Workflow 1 - Recepción inteligente de reclamos (cerebro del proyecto)
@@ -330,8 +331,9 @@ La incorporación de la solución a la tabla **Conocimiento** **no** se realiza 
 Las propuestas quedan sujetas a validación **Human-in-the-Loop**:
 - un responsable revisa y aprueba las soluciones
 - solo las aprobadas se incorporan a la base de conocimiento
+  
+![HITL_2](HITL_2.png)
 
-> Estado: flujo diseñado con validación antes de actualizar Conocimiento.
 
 ### Workflow 4 - Control y Monitoreo del Sistema
 ![Workflow 4](w4.png)
