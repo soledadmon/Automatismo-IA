@@ -1,0 +1,298 @@
+{
+  "name": "Worckflow 5 - Gestión de Errores y Resiliencia",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cef8fb4e-0a50-4c0d-84d2-84641c2c0009",
+      "name": "Capturar error"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "006fa5ab-7e6b-484d-a89f-0b160a8e17c9",
+              "name": "Workflow5",
+              "value": "={{ $json.workflow.name }}",
+              "type": "string"
+            },
+            {
+              "id": "3c1a57ee-b597-461c-8b87-5d09c19b3412",
+              "name": "Nodo",
+              "value": "={{ $json.execution.lastNodeExecuted }}",
+              "type": "string"
+            },
+            {
+              "id": "84ea17b5-c4c9-4043-9241-dc3f3d250fd8",
+              "name": "Error",
+              "value": "={{ $json.execution.error.message }}",
+              "type": "string"
+            },
+            {
+              "id": "81f2f4fc-8d99-4ed9-baac-a94a8352fe6c",
+              "name": "Estado",
+              "value": "Pediente",
+              "type": "string"
+            },
+            {
+              "id": "64f99167-c5d8-490d-ac34-25eefdb3a5cc",
+              "name": "Fecha",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        176,
+        0
+      ],
+      "id": "563e7dca-4cdb-433b-a357-fbc83d0a995e",
+      "name": "Preparar registro de error"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appkaRXVMcpVYv52B",
+          "mode": "list",
+          "cachedResultName": "Base de gestion de reclamos",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblO2s1ujuex4icgE",
+          "mode": "list",
+          "cachedResultName": "Logs",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B/tblO2s1ujuex4icgE"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Workflow": "={{ $json.Workflow5 }}",
+            "Nodo": "={{ $json.Nodo }}",
+            "Estado": "={{ $json.Estado }}",
+            "Error": "={{ $json.Error }}",
+            "Cant_alertas": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nro_log",
+              "displayName": "Nro_log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Workflow",
+              "displayName": "Workflow",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Error",
+              "displayName": "Error",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pediente",
+                  "value": "Pediente"
+                },
+                {
+                  "name": "Revisado",
+                  "value": "Revisado"
+                },
+                {
+                  "name": "Resuelto",
+                  "value": "Resuelto"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Resumen_de_control",
+              "displayName": "Resumen_de_control",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cant_alertas",
+              "displayName": "Cant_alertas",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha_creacion",
+              "displayName": "Fecha_creacion",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        0
+      ],
+      "id": "f95c93c6-baa1-4e57-94dd-0c42261bae5c",
+      "name": "Registrar error en Logs",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yJmAyIMdAPdlYkma",
+          "name": "Airtable account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "=soledadmon@gmail.com",
+        "subject": "=Error detectado en Workflow {{ $json.fields.Workflow }}",
+        "message": "=Se detectó un error durante la ejecución del ecosistema de gestión de reclamos.\n\nWorkflow:\n{{ $json.fields.Workflow }}\n\nNodo:\n{{ $json.fields.Nodo }}\n\nError:\n{{ $json.fields.Error }}\n\nFecha:\n{{ $json.fields.Fecha }}\n\nEl incidente fue registrado automáticamente en la tabla Logs para su revisión.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "e5c368f1-82f6-4e2d-bc9a-933c3128f208",
+      "name": "Notificar administrador",
+      "webhookId": "93c3f8c1-0365-4646-a002-42053de85fa8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NI6lQsbZ0gwrpnEz",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Capturar error": {
+      "main": [
+        [
+          {
+            "node": "Preparar registro de error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar registro de error": {
+      "main": [
+        [
+          {
+            "node": "Registrar error en Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar error en Logs": {
+      "main": [
+        [
+          {
+            "node": "Notificar administrador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "28b9ceab-3e7b-439b-8f02-bb4cbfaee03c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6cfe6a0c0e43781eae7b36b5ba2d4c5d8d659e775d69bd07d28abd4df92e22a1"
+  },
+  "nodeGroups": [],
+  "id": "735KezXgWmzKYOH9",
+  "tags": []
+}

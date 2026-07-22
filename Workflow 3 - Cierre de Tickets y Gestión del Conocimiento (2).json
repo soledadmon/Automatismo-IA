@@ -1,0 +1,839 @@
+{
+  "name": "Workflow 3 - Cierre de Tickets y Gestión del Conocimiento",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appkaRXVMcpVYv52B",
+          "mode": "list",
+          "cachedResultName": "Base de gestion de reclamos",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblBnyrLhjBZpIDet",
+          "mode": "list",
+          "cachedResultName": "Tickets",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B/tblBnyrLhjBZpIDet"
+        },
+        "filterByFormula": "{Estado_ticket}=\"Resuelto\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -912,
+        -496
+      ],
+      "id": "7f8f9b53-6b1a-4409-aca0-a731c5f496ac",
+      "name": "Buscar tickets resueltos",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yJmAyIMdAPdlYkma",
+          "name": "Airtable account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 20
+            },
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1088,
+        -496
+      ],
+      "id": "cde46cff-942a-4a91-bc54-bbf72764a62c",
+      "name": "Ejecutar seguimiento"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "113cb03c-a529-4e1e-b663-a1c2fa60f655",
+              "leftValue": "={{$json.fields.Descripcion_problema}}",
+              "rightValue": "Resuelto",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -736,
+        -496
+      ],
+      "id": "1d5ef8d6-f5e7-4344-b545-6f1295a51a01",
+      "name": "¿Tiene descripción?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "113cb03c-a529-4e1e-b663-a1c2fa60f655",
+              "leftValue": "={{ $json.fields.Estado_ticket }}",
+              "rightValue": "Resuelto",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -528,
+        -512
+      ],
+      "id": "c939a9ef-1c2d-46d2-bdbc-8e126f7ad426",
+      "name": "¿Ticket resuelto?"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "openai/gpt-4o-mini",
+          "mode": "id"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Rol:\nEres un analista de documentación técnica especializado en gestión de reclamos.\n\nObjetivo:\nTransformar la resolución de un ticket en conocimiento reutilizable para futuros casos.\n\nInstrucciones:\n\nAnaliza la descripción del problema y la resolución aplicada por el técnico.\n\nGenera:\n\n1. Un resumen claro del problema.\n2. Una explicación breve de la solución aplicada.\n3. Una recomendación para resolver casos similares en el futuro.\n\nReglas:\n\n- No inventes información.\n- Utiliza únicamente los datos proporcionados.\n- Sé claro y profesional.\n- Devuelve únicamente un JSON.\n\nFormato:\n\n{\n  \"problema\": \"\",\n  \"solucion\": \"\",\n  \"recomendacion\": \"\"\n}\n\nDescripción del problema:\n\n{{Descripcion_problema}}\n\nResolución:\n\n{{Resolucion}}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "store": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -320,
+        -528
+      ],
+      "id": "c78d5166-8ef2-4ce0-90df-7f25fc4108ce",
+      "name": "IA - Generar resumen del caso",
+      "credentials": {
+        "openAiApi": {
+          "id": "CvgT5Psqq2vKNyxe",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const texto = $json.output[0].content[0].text\n  .replace(/```json/g, '')\n  .replace(/```/g, '')\n  .trim();\n\nconst respuesta = JSON.parse(texto);\n\nreturn [\n  {\n    json: respuesta\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        -528
+      ],
+      "id": "32c9abd3-969f-475e-b72a-318b216bb60d",
+      "name": "Procesar resumen IA"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appkaRXVMcpVYv52B",
+          "mode": "list",
+          "cachedResultName": "Base de gestion de reclamos",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblBnyrLhjBZpIDet",
+          "mode": "list",
+          "cachedResultName": "Tickets",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B/tblBnyrLhjBZpIDet"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Notificado_usuario": false,
+            "Aprobado_por_encargado": false,
+            "id": "={{ $('Buscar tickets resueltos').item.json.id }}",
+            "Tiempo_dedicado": 0,
+            "Resolucion": "={{ $json.solucion }}",
+            "Descripcion_problema": "={{ $json.problema }}",
+            "Resumen_IA": "={{ $json.recomendacion }}",
+            "Estado_ticket": "Cerrado",
+            "Fecha_cierre": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Nro_ticket",
+              "displayName": "Nro_ticket",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Reclamo",
+              "displayName": "Reclamo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cliente",
+              "displayName": "Cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha_creacion",
+              "displayName": "Fecha_creacion",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Estado_ticket",
+              "displayName": "Estado_ticket",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Creado",
+                  "value": "Creado"
+                },
+                {
+                  "name": "Asignado",
+                  "value": "Asignado"
+                },
+                {
+                  "name": "En análisis",
+                  "value": "En análisis"
+                },
+                {
+                  "name": "En proceso",
+                  "value": "En proceso"
+                },
+                {
+                  "name": "Pendiente cliente",
+                  "value": "Pendiente cliente"
+                },
+                {
+                  "name": "Pendiene tercero",
+                  "value": "Pendiene tercero"
+                },
+                {
+                  "name": "Cerrado",
+                  "value": "Cerrado"
+                },
+                {
+                  "name": "Resuelto",
+                  "value": "Resuelto"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Responsable",
+              "displayName": "Responsable",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Area",
+              "displayName": "Area",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Soporte",
+                  "value": "Soporte"
+                },
+                {
+                  "name": "Sistemas",
+                  "value": "Sistemas"
+                },
+                {
+                  "name": "Administración",
+                  "value": "Administración"
+                },
+                {
+                  "name": "Facturación",
+                  "value": "Facturación"
+                },
+                {
+                  "name": "Ventas",
+                  "value": "Ventas"
+                },
+                {
+                  "name": "Atención al Cliente",
+                  "value": "Atención al Cliente"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Prioridad",
+              "displayName": "Prioridad",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Baja",
+                  "value": "Baja"
+                },
+                {
+                  "name": "Media",
+                  "value": "Media"
+                },
+                {
+                  "name": "Alta",
+                  "value": "Alta"
+                },
+                {
+                  "name": "Crítica",
+                  "value": "Crítica"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha_vencimiento",
+              "displayName": "Fecha_vencimiento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Descripcion_problema",
+              "displayName": "Descripcion_problema",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Resolucion",
+              "displayName": "Resolucion",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Tiempo_dedicado",
+              "displayName": "Tiempo_dedicado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Resumen_IA",
+              "displayName": "Resumen_IA",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha_cierre",
+              "displayName": "Fecha_cierre",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notificado_usuario",
+              "displayName": "Notificado_usuario",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Aprobado_por_encargado",
+              "displayName": "Aprobado_por_encargado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Responsables",
+              "displayName": "Responsables",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        -528
+      ],
+      "id": "8f0b570a-43e4-4453-8729-46cb8264e3c6",
+      "name": "Actualizar ticket cerrado",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yJmAyIMdAPdlYkma",
+          "name": "Airtable account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appkaRXVMcpVYv52B",
+          "mode": "list",
+          "cachedResultName": "Base de gestion de reclamos",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblQJDf3HcrjRFFIT",
+          "mode": "list",
+          "cachedResultName": "Clientes",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B/tblQJDf3HcrjRFFIT"
+        },
+        "filterByFormula": "=RECORD_ID() = '{{ $('Buscar tickets resueltos').item.json.fields.Cliente[0] }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        -528
+      ],
+      "id": "a44423c7-b0a1-47c8-a0bf-aad221745cb0",
+      "name": "Buscar datos del cliente",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yJmAyIMdAPdlYkma",
+          "name": "Airtable account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.fields.Email }}",
+        "subject": "=Reclamo resuelto - Ticket {{ $('Actualizar ticket cerrado').item.json.fields.Nro_ticket }}",
+        "message": "=Estimado/a {{ $json.fields.Nombre }},\n\nLe informamos que su reclamo ha sido resuelto satisfactoriamente.\n\nDetalle del ticket:\n━━━━━━━━━━━━━━━━━━\nNúmero de ticket: {{ $('Actualizar ticket cerrado').item.json.fields.Nro_ticket }}\n\nSolución aplicada:\n{{ $('Actualizar ticket cerrado').item.json.fields.Resolucion }}\n━━━━━━━━━━━━━━━━━━\n\nAgradecemos su comunicación y quedamos a disposición ante cualquier consulta adicional.\n\nSaludos cordiales,\n\nEquipo de Gestión Reclamos IA",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        544,
+        -528
+      ],
+      "id": "de74672b-8990-468e-841c-07010165de63",
+      "name": "Enviar correo de cierre",
+      "webhookId": "93c3f8c1-0365-4646-a002-42053de85fa8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NI6lQsbZ0gwrpnEz",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appkaRXVMcpVYv52B",
+          "mode": "list",
+          "cachedResultName": "Base de gestion de reclamos",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblO2s1ujuex4icgE",
+          "mode": "list",
+          "cachedResultName": "Logs",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B/tblO2s1ujuex4icgE"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Workflow": "Recepción inteligente",
+            "Nodo": "IF validación reclamo",
+            "Error": "Reclamo sin información suficiente para analizar",
+            "Estado": "Pediente",
+            "Resumen_de_control": "Reclamo rechazado por falta de datos",
+            "Cant_alertas": 1
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nro_log",
+              "displayName": "Nro_log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Workflow",
+              "displayName": "Workflow",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Error",
+              "displayName": "Error",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pediente",
+                  "value": "Pediente"
+                },
+                {
+                  "name": "Revisado",
+                  "value": "Revisado"
+                },
+                {
+                  "name": "Resuelto",
+                  "value": "Resuelto"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Resumen_de_control",
+              "displayName": "Resumen_de_control",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cant_alertas",
+              "displayName": "Cant_alertas",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha_creacion",
+              "displayName": "Fecha_creacion",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -480,
+        -320
+      ],
+      "id": "d2038451-b835-4260-852d-643359d172d9",
+      "name": "registrar en log",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yJmAyIMdAPdlYkma",
+          "name": "Airtable account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Buscar tickets resueltos": {
+      "main": [
+        [
+          {
+            "node": "¿Tiene descripción?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecutar seguimiento": {
+      "main": [
+        [
+          {
+            "node": "Buscar tickets resueltos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Tiene descripción?": {
+      "main": [
+        [
+          {
+            "node": "¿Ticket resuelto?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "registrar en log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Ticket resuelto?": {
+      "main": [
+        [
+          {
+            "node": "IA - Generar resumen del caso",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "IA - Generar resumen del caso": {
+      "main": [
+        [
+          {
+            "node": "Procesar resumen IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar resumen IA": {
+      "main": [
+        [
+          {
+            "node": "Actualizar ticket cerrado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar ticket cerrado": {
+      "main": [
+        [
+          {
+            "node": "Buscar datos del cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar datos del cliente": {
+      "main": [
+        [
+          {
+            "node": "Enviar correo de cierre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "8ad3927e-4023-4273-af4b-2b04c6c97764",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6cfe6a0c0e43781eae7b36b5ba2d4c5d8d659e775d69bd07d28abd4df92e22a1"
+  },
+  "nodeGroups": [],
+  "id": "Ujg9R8NGJROWODpZ",
+  "tags": []
+}

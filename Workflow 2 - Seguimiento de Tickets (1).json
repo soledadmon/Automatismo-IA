@@ -1,0 +1,388 @@
+{
+  "name": "Workflow 2 - Seguimiento de Tickets",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -400,
+        -208
+      ],
+      "id": "5f8ccd6e-6008-4930-9d4b-7770527ac934",
+      "name": "Ejecutar seguimiento diario"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appkaRXVMcpVYv52B",
+          "mode": "list",
+          "cachedResultName": "Base de gestion de reclamos",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblBnyrLhjBZpIDet",
+          "mode": "list",
+          "cachedResultName": "Tickets",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B/tblBnyrLhjBZpIDet"
+        },
+        "filterByFormula": "NOT({Estado_ticket} = \"Cerrado\")",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        -208
+      ],
+      "id": "28664dc1-98b8-49a5-8f67-6f4a42d5e9dc",
+      "name": "Buscar tickets abiertos",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yJmAyIMdAPdlYkma",
+          "name": "Airtable account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      tickets: items.map(item => item.json)\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        -208
+      ],
+      "id": "4f210cd2-d6e9-48e5-beab-4d8bd61b8e96",
+      "name": "Preparar datos para IA"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "openai/gpt-4o-mini",
+          "mode": "id"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Eres un asistente inteligente de gestión de tickets.\n\nTu tarea es analizar la información de los tickets y detectar aquellos que requieren atención.\n\nAnaliza los siguientes datos:\n\n- Estado del ticket\n- Prioridad\n- Responsable asignado\n- Área\n- Fecha de vencimiento\n- Días transcurridos desde la creación\n- Historial o descripción del problema\n\nDebes identificar:\n\n1. Tickets vencidos o próximos a vencer.\n2. Tickets sin responsable asignado.\n3. Tickets con prioridad alta que estén demorados.\n4. Tickets pendientes de respuesta del cliente o de terceros.\n5. Tickets que deberían ser reasignados.\n6. Cualquier situación que pueda afectar los tiempos de resolución.\n\nDevuelve la respuesta en formato JSON con esta estructura:\n\n{\n  \"alertas_detectadas\": [\n    {\n      \"nro_ticket\": \"\",\n      \"tipo_alerta\": \"\",\n      \"prioridad\": \"\",\n      \"responsable_actual\": \"\",\n      \"accion_recomendada\": \"\"\n    }\n  ],\n  \"resumen_general\": \"\",\n  \"cantidad_alertas\": 0\n}\n\nSi no existen problemas, devuelve:\n{\n  \"alertas_detectadas\": [],\n  \"resumen_general\": \"No se detectaron alertas\",\n  \"cantidad_alertas\": 0\n}\n{{ JSON.stringify($json.tickets) }}\nNo inventes información. Utiliza solamente los datos recibidos.\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "store": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        128,
+        -208
+      ],
+      "id": "a704bcf4-bae7-413b-a82d-7ee87da27929",
+      "name": "IA - Analizar estado de tickets",
+      "credentials": {
+        "openAiApi": {
+          "id": "CvgT5Psqq2vKNyxe",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const texto = $json.output[0].content[0].text;\n\nconst limpio = texto\n  .replace(/```json/g, '')\n  .replace(/```/g, '')\n  .trim();\n\nreturn [\n  {\n    json: JSON.parse(limpio)\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -208
+      ],
+      "id": "99524f2f-bd3c-4fa5-86e1-047ef857e6e3",
+      "name": "Procesar alertas detectadas"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "937a200e-cea6-4252-b7f5-9d00c9474373",
+              "leftValue": "={{ $json.cantidad_alertas }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        -208
+      ],
+      "id": "56c93770-ff54-456d-a277-f22af1dd79f6",
+      "name": "¿Se detectaron alertas?"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appkaRXVMcpVYv52B",
+          "mode": "list",
+          "cachedResultName": "Base de gestion de reclamos",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblO2s1ujuex4icgE",
+          "mode": "list",
+          "cachedResultName": "Logs",
+          "cachedResultUrl": "https://airtable.com/appkaRXVMcpVYv52B/tblO2s1ujuex4icgE"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nodo": "Message a Model",
+            "Workflow": "Seguimiento y alertas",
+            "Estado": "Pediente",
+            "Resumen_de_control": "={{ $json.resumen_general }}",
+            "Cant_alertas": "={{ $json.cantidad_alertas }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nro_log",
+              "displayName": "Nro_log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Workflow",
+              "displayName": "Workflow",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Error",
+              "displayName": "Error",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pediente",
+                  "value": "Pediente"
+                },
+                {
+                  "name": "Revisado",
+                  "value": "Revisado"
+                },
+                {
+                  "name": "Resuelto",
+                  "value": "Resuelto"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Resumen_de_control",
+              "displayName": "Resumen_de_control",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cant_alertas",
+              "displayName": "Cant_alertas",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        -224
+      ],
+      "id": "e290be48-d3a0-4a31-b624-b45e97138118",
+      "name": "Registrar alertas en Logs",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yJmAyIMdAPdlYkma",
+          "name": "Airtable account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ejecutar seguimiento diario": {
+      "main": [
+        [
+          {
+            "node": "Buscar tickets abiertos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar tickets abiertos": {
+      "main": [
+        [
+          {
+            "node": "Preparar datos para IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar datos para IA": {
+      "main": [
+        [
+          {
+            "node": "IA - Analizar estado de tickets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA - Analizar estado de tickets": {
+      "main": [
+        [
+          {
+            "node": "Procesar alertas detectadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar alertas detectadas": {
+      "main": [
+        [
+          {
+            "node": "¿Se detectaron alertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Se detectaron alertas?": {
+      "main": [
+        [
+          {
+            "node": "Registrar alertas en Logs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c20625e2-6558-48bd-8aff-5749984baa0b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6cfe6a0c0e43781eae7b36b5ba2d4c5d8d659e775d69bd07d28abd4df92e22a1"
+  },
+  "nodeGroups": [],
+  "id": "cqADCKpzoZk1HQtA",
+  "tags": []
+}
