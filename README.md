@@ -56,7 +56,7 @@ Ejemplo de aplicación de HITL:
 ![HITL](img_HITL.png)
 
 ## Diagrama general
-![ArcitecturaGeneral](img_Arq_gen.drawiopng)
+![ArcitecturaGeneral](img_Arq_gen.drawio.png)
 ## Arquitectura (Workflows coordinados + Airtable)
 El ecosistema fue dividido en **cinco workflows independientes** que trabajan de forma coordinada sobre una misma base de datos en **Airtable**.  
 Cada workflow tiene una responsabilidad específica dentro del proceso de gestión de reclamos, manteniendo una arquitectura modular, escalable y fácil de mantener.
