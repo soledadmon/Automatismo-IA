@@ -174,6 +174,7 @@ Tabla creada para consolidación y análisis de datos para dashboards e indicado
 ## Descripción de los Workflows (alto nivel)
 
 ### Workflow 1 - Recepción inteligente de reclamos (cerebro del proyecto)
+![Workflow 1](w1.png)
 Se utiliza para automatizar la recepción y clasificación de un reclamo desde el momento en que ingresa al sistema.
 
 #### Entradas / Trigger
@@ -233,7 +234,7 @@ Este workflow reduce el tiempo de atención de consultas repetitivas reutilizand
   "area": "",
   "resolucion_automatica": ""
 }
-
+```
 ### Prompt para recuperación de conocimiento (RAG)
 **Rol:** Eres un sistema experto de recuperación de conocimiento.
 **Objetivo:** Comparar un nuevo reclamo con casos almacenados para identificar soluciones existentes.
@@ -245,13 +246,14 @@ Considerar únicamente casos donde la solución pueda aplicarse.
 No inventar soluciones.
 Responder únicamente en formato JSON.
 **Devuelve JSON:**
-json
+```json
 {
   "encontrado": true,
   "solucion": ""
-}
+}```
 
 ### Workflow 2 - Seguimiento diario y alertas
+![Workflow 2](w2.png)
 Se utiliza para supervisar diariamente todos los tickets abiertos e identificar situaciones que requieran intervención humana. Las alertas generadas por la IA no ejecutan acciones automáticamente, por lo que incorpora un punto de Human-in-the-Loop: un responsable revisa cada caso y decide qué acciones tomar (reasignación, prioridad o seguimiento).
 
 ### Entradas / Trigger
@@ -289,7 +291,7 @@ Schedule Trigger: ejecución programada una vez por día (en pruebas se ajusta e
 - Responder únicamente en formato JSON.
 **Devuelve JSON:**
 
-json
+```json
 {
   "alertas_detectadas": [
     {
@@ -302,9 +304,10 @@ json
   ],
   "resumen_general": "",
   "cantidad_alertas": 0
-}
+}```
 
 ### Workflow 3 - Cierre de ticket y generación de conocimiento
+![Workflow 3](w3.png)
 Este workflow se ejecuta cuando un ticket cambia al estado **“Cerrado”**. Su objetivo es documentar la resolución del caso y generar **conocimiento reutilizable** mediante inteligencia artificial.
 
 #### Trigger
@@ -329,6 +332,7 @@ Las propuestas quedan sujetas a validación **Human-in-the-Loop**:
 > Estado: flujo diseñado con validación antes de actualizar Conocimiento.
 
 ### Workflow 4 - Control y Monitoreo del Sistema
+![Workflow 4](w4.png)
 Este workflow se ejecuta de forma programada para **consolidar información** generada por el ecosistema y producir **indicadores** de seguimiento de la operación.
 
 #### Trigger
@@ -345,6 +349,7 @@ Este workflow se ejecuta de forma programada para **consolidar información** ge
 
 
 ### Workflow 5 - Gestión de errores y resiliencia
+![Workflow 5](w5.png)
 Este workflow se ejecuta automáticamente cuando ocurre un **error** durante la ejecución de alguno de los procesos del ecosistema.
 
 #### Trigger
