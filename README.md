@@ -250,7 +250,8 @@ Responder únicamente en formato JSON.
 {
   "encontrado": true,
   "solucion": ""
-}```
+}
+```
 
 ### Workflow 2 - Seguimiento diario y alertas
 ![Workflow 2](w2.png)
