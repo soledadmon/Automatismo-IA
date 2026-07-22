@@ -305,7 +305,8 @@ Schedule Trigger: ejecución programada una vez por día (en pruebas se ajusta e
   ],
   "resumen_general": "",
   "cantidad_alertas": 0
-}```
+}
+```
 
 ### Workflow 3 - Cierre de ticket y generación de conocimiento
 ![Workflow 3](w3.png)
