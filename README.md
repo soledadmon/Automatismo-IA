@@ -133,14 +133,14 @@ Registra el personal encargado de resolver los tickets.
 
 #### Conocimiento (Base de conocimiento / RAG)
 Almacena las soluciones reutilizables generadas por el sistema.
-●	**Nro_caso** (PK)
-●	Problema
-●	Solución
-●	Área
-●	Categoría
-●	Prioridad
-●	Fuente
-●	Fecha_registro
+- **Nro_caso** (PK)
+- 	Problema
+- 	Solución
+- 	Área
+- 	Categoría
+- 	Prioridad
+- 	Fuente
+- 	Fecha_registro
 
 
 Almacena las soluciones reutilizables generadas por el sistema.
